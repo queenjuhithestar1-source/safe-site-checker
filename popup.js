@@ -5,13 +5,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   let score = 100;
   let tips = [];
 
-  // Rule 1: HTTPS check
+  // HTTPS check
   if (!url.startsWith("https")) {
     score -= 40;
     tips.push("This site is not secure (no HTTPS)");
   }
 
-  // Rule 2: Suspicious keywords
+  // Suspicious keywords
   if (
     url.includes("login") ||
     url.includes("verify") ||
@@ -21,13 +21,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     tips.push("This page may ask for sensitive information");
   }
 
-  // Rule 3: Long or weird URL
+  // URL structure
   if (url.length > 60 || url.includes("-")) {
     score -= 10;
     tips.push("This URL looks unusual or overly long");
   }
 
-  // Determine status
+  // Status
   let statusText = "";
   let color = "";
 
@@ -42,18 +42,18 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     color = "#E53935";
   }
 
-  // Update score bar
+  // Score bar
   let scoreFill = document.getElementById("score-fill");
   scoreFill.style.width = score + "%";
   scoreFill.style.backgroundColor = color;
   scoreFill.textContent = score + "/100";
 
-  // Update status
+  // Status text
   let statusElement = document.getElementById("status");
   statusElement.textContent = statusText;
   statusElement.style.color = color;
 
-  // Update tips
+  // Tips
   let tipsList = document.getElementById("tips");
   tipsList.innerHTML = "";
 
@@ -67,7 +67,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     tipsList.appendChild(li);
   });
 
-  // Save history
+  // History
   let history = JSON.parse(localStorage.getItem("siteHistory") || "[]");
 
   history.unshift({
@@ -83,7 +83,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
   localStorage.setItem("siteHistory", JSON.stringify(history));
 
-  // Display history
   let historyDiv = document.getElementById("history");
   historyDiv.innerHTML = "";
 
@@ -94,7 +93,16 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   });
 });
 
-// 🔗 Open website dashboard (CONNECTED)
+// ✅ FIXED: Event listener instead of inline onclick
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("openDashboard");
+
+  if (btn) {
+    btn.addEventListener("click", openWebsite);
+  }
+});
+
+// Open dashboard
 function openWebsite() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     let currentUrl = tabs[0].url;
@@ -105,7 +113,7 @@ function openWebsite() {
   });
 }
 
-// 📡 Receive popup detection data
+// Popup detection messages
 chrome.runtime.onMessage.addListener((message) => {
   if (message.popups > 0) {
     let tipsList = document.getElementById("tips");
