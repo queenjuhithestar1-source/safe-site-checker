@@ -5,21 +5,29 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   let score = 100;
   let tips = [];
 
+  // Rule 1: HTTPS check
   if (!url.startsWith("https")) {
     score -= 40;
     tips.push("This site is not secure (no HTTPS)");
   }
 
-  if (url.includes("login") || url.includes("verify") || url.includes("secure")) {
+  // Rule 2: Suspicious keywords
+  if (
+    url.includes("login") ||
+    url.includes("verify") ||
+    url.includes("secure")
+  ) {
     score -= 20;
     tips.push("This page may ask for sensitive information");
   }
 
+  // Rule 3: Long or weird URL
   if (url.length > 60 || url.includes("-")) {
     score -= 10;
     tips.push("This URL looks unusual or overly long");
   }
 
+  // Determine status
   let statusText = "";
   let color = "";
 
@@ -34,18 +42,24 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     color = "#E53935";
   }
 
+  // Update score bar
   let scoreFill = document.getElementById("score-fill");
   scoreFill.style.width = score + "%";
   scoreFill.style.backgroundColor = color;
   scoreFill.textContent = score + "/100";
 
+  // Update status
   let statusElement = document.getElementById("status");
   statusElement.textContent = statusText;
   statusElement.style.color = color;
 
+  // Update tips
   let tipsList = document.getElementById("tips");
   tipsList.innerHTML = "";
-  if (tips.length === 0) tips.push("No obvious risks detected");
+
+  if (tips.length === 0) {
+    tips.push("No obvious risks detected");
+  }
 
   tips.forEach((tip) => {
     let li = document.createElement("li");
@@ -53,6 +67,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     tipsList.appendChild(li);
   });
 
+  // Save history
   let history = JSON.parse(localStorage.getItem("siteHistory") || "[]");
 
   history.unshift({
@@ -62,10 +77,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     date: new Date().toLocaleString()
   });
 
-  if (history.length > 10) history.pop();
+  if (history.length > 10) {
+    history.pop();
+  }
 
   localStorage.setItem("siteHistory", JSON.stringify(history));
 
+  // Display history
   let historyDiv = document.getElementById("history");
   historyDiv.innerHTML = "";
 
@@ -76,16 +94,18 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   });
 });
 
+// 🔗 Open website dashboard (CONNECTED)
 function openWebsite() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     let currentUrl = tabs[0].url;
 
     chrome.tabs.create({
-      url: `https://queenjuhithestar1-source.github.io/safe-site-checker/dashboard.html?url=${encodeURIComponent(currentUrl)}`
+      url: `https://queenjuhithestar1-source.github.io/safe-site-checker/buddy-website/dashboard.html?url=${encodeURIComponent(currentUrl)}`
     });
   });
 }
 
+// 📡 Receive popup detection data
 chrome.runtime.onMessage.addListener((message) => {
   if (message.popups > 0) {
     let tipsList = document.getElementById("tips");
