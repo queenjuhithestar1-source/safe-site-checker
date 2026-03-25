@@ -4,6 +4,9 @@
   "version": "1.0",
   "description": "Your friendly cybersecurity buddy that checks website safety",
   "permissions": ["tabs"],
+  "host_permissions": [
+    "https://safebrowsing.googleapis.com/*"
+  ],
   "action": {
     "default_popup": "popup.html"
   },

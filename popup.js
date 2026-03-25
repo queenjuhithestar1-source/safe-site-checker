@@ -1,7 +1,12 @@
 // =====================
+// CONFIG
+// =====================
+const SAFE_BROWSING_API_KEY = "YOUR_API_KEY_HERE"; // Get free key at console.cloud.google.com
+
+// =====================
 // MAIN URL ANALYSIS
 // =====================
-chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
   let url = tabs[0].url;
   document.getElementById("url").textContent = url;
 
@@ -25,6 +30,57 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     score -= 10;
     tips.push("URL looks unusually long");
   }
+
+  // =====================
+  // GOOGLE SAFE BROWSING API CHECK
+  // =====================
+  try {
+    const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${SAFE_BROWSING_API_KEY}`;
+
+    const requestBody = {
+      client: {
+        clientId: "buddy-safesite-checker",
+        clientVersion: "1.0"
+      },
+      threatInfo: {
+        threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"],
+        platformTypes: ["ANY_PLATFORM"],
+        threatEntryTypes: ["URL"],
+        threatEntries: [{ url: url }]
+      }
+    };
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await response.json();
+
+    // If Google found a threat match, apply a heavy penalty
+    if (data.matches && data.matches.length > 0) {
+      score -= 50;
+      const threatType = data.matches[0].threatType;
+
+      if (threatType === "SOCIAL_ENGINEERING") {
+        tips.push("⚠️ Google flagged this site as a known phishing page");
+      } else if (threatType === "MALWARE") {
+        tips.push("⚠️ Google flagged this site as known malware");
+      } else {
+        tips.push("⚠️ Google Safe Browsing flagged this site as dangerous");
+      }
+    } else {
+      tips.push("✓ Not found in Google's phishing/malware database");
+    }
+
+  } catch (err) {
+    // If API call fails (no internet, bad key, etc.), just skip it silently
+    tips.push("Safe Browsing check unavailable");
+  }
+
+  // Clamp score to 0 minimum
+  score = Math.max(0, score);
 
   // Determine status
   let status = "";
@@ -83,7 +139,6 @@ function openWebsite() {
 // Attach button event (NO inline JS)
 document.addEventListener("DOMContentLoaded", function () {
   const btn = document.getElementById("openDashboard");
-
   if (btn) {
     btn.addEventListener("click", openWebsite);
   }
@@ -96,32 +151,26 @@ chrome.runtime.onMessage.addListener((message) => {
   const tipsList = document.getElementById("tips");
   if (!tipsList) return;
 
-  // Show popup detection
   if (message.popups > 0) {
     const li = document.createElement("li");
     li.textContent = `Detected ${message.popups} popup attempts`;
     tipsList.appendChild(li);
   }
 
-  // Show redirect detection
   if (message.redirects > 1) {
     const li = document.createElement("li");
     li.textContent = "Multiple redirects detected";
     tipsList.appendChild(li);
   }
 
-  // AI-style explanation
   const ai = document.createElement("li");
 
   if (message.popups > 2 && message.redirects > 1) {
-    ai.textContent =
-      "AI Insight: This site shows behavior commonly seen in phishing or scam websites.";
+    ai.textContent = "AI Insight: This site shows behavior commonly seen in phishing or scam websites.";
   } else if (message.popups > 0) {
-    ai.textContent =
-      "AI Insight: Popups can be used by misleading or unsafe websites.";
+    ai.textContent = "AI Insight: Popups can be used by misleading or unsafe websites.";
   } else if (message.redirects > 1) {
-    ai.textContent =
-      "AI Insight: Multiple redirects may indicate suspicious behavior.";
+    ai.textContent = "AI Insight: Multiple redirects may indicate suspicious behavior.";
   } else {
     ai.textContent = "AI Insight: No suspicious behavior detected.";
   }
