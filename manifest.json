@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "SafeSite Checker",
+  "name": "Buddy - SafeSite Checker",
   "version": "1.0",
-  "description": "Checks if a website is safe",
+  "description": "Your friendly cybersecurity buddy that checks website safety",
   "permissions": ["tabs"],
   "action": {
     "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "logo.png"
   },
   "content_scripts": [
     {
