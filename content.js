@@ -1,30 +1,37 @@
-let popupCount = 0;
-let suspiciousActivity = [];
+chrome.runtime.onMessage.addListener((message) => {
+  let tipsList = document.getElementById("tips");
 
-const originalOpen = window.open;
-window.open = function () {
-  popupCount++;
-  suspiciousActivity.push("Popup window attempted");
-  return originalOpen.apply(this, arguments);
-};
+  if (!tipsList) return;
 
-const originalAlert = window.alert;
-window.alert = function () {
-  popupCount++;
-  suspiciousActivity.push("Alert popup detected");
-  return originalAlert.apply(this, arguments);
-};
+  // Add raw detections
+  if (message.popups > 0) {
+    let li = document.createElement("li");
+    li.textContent = `Detected ${message.popups} popup attempts`;
+    tipsList.appendChild(li);
+  }
 
-const originalConfirm = window.confirm;
-window.confirm = function () {
-  popupCount++;
-  suspiciousActivity.push("Confirm popup detected");
-  return originalConfirm.apply(this, arguments);
-};
+  if (message.redirects > 1) {
+    let li = document.createElement("li");
+    li.textContent = `Multiple redirects detected`;
+    tipsList.appendChild(li);
+  }
 
-setTimeout(() => {
-  chrome.runtime.sendMessage({
-    popups: popupCount,
-    issues: suspiciousActivity
-  });
-}, 2000);
+  // 🧠 AI-style explanation
+  let aiInsight = document.createElement("li");
+
+  if (message.popups > 2 && message.redirects > 1) {
+    aiInsight.textContent =
+      "AI Insight: This site shows behavior commonly seen in scam or phishing websites (excessive popups and redirects).";
+  } else if (message.popups > 0) {
+    aiInsight.textContent =
+      "AI Insight: Popups are often used in misleading or unsafe websites. Proceed carefully.";
+  } else if (message.redirects > 1) {
+    aiInsight.textContent =
+      "AI Insight: Multiple redirects may indicate tracking or malicious behavior.";
+  } else {
+    aiInsight.textContent =
+      "AI Insight: No suspicious behavior patterns detected.";
+  }
+
+  tipsList.appendChild(aiInsight);
+});

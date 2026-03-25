@@ -12,10 +12,23 @@
       <p>Your Cybersecurity Friend</p>
     </div>
 
+    <!-- URL Checker -->
     <div class="card">
       <input id="urlInput" type="text" placeholder="Enter URL" />
       <button onclick="checkSite()">Check</button>
       <div id="result"></div>
+    </div>
+
+    <!-- Phishing Game -->
+    <div class="card">
+      <h3>Phishing Game</h3>
+
+      <p id="question">Which site is safe?</p>
+
+      <button onclick="checkAnswer(0)" id="opt0"></button>
+      <button onclick="checkAnswer(1)" id="opt1"></button>
+
+      <div id="gameResult"></div>
     </div>
 
     <script src="script.js"></script>
