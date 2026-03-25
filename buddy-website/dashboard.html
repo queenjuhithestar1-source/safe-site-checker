@@ -7,29 +7,19 @@
   </head>
 
   <body>
-    <div class="header">
-      <h1>Buddy Dashboard</h1>
-      <p>Your Cybersecurity Friend</p>
-    </div>
+    <h1>Buddy Dashboard</h1>
 
-    <!-- URL Checker -->
-    <div class="card">
-      <input id="urlInput" type="text" placeholder="Enter URL" />
-      <button onclick="checkSite()">Check</button>
-      <div id="result"></div>
-    </div>
+    <input id="urlInput" placeholder="Enter URL" />
+    <button onclick="checkSite()">Check</button>
 
-    <!-- Phishing Game -->
-    <div class="card">
-      <h3>Phishing Game</h3>
+    <div id="result"></div>
 
-      <p id="question">Which site is safe?</p>
+    <h2>Phishing Game</h2>
 
-      <button onclick="checkAnswer(0)" id="opt0"></button>
-      <button onclick="checkAnswer(1)" id="opt1"></button>
+    <button onclick="checkAnswer(0)" id="opt0"></button>
+    <button onclick="checkAnswer(1)" id="opt1"></button>
 
-      <div id="gameResult"></div>
-    </div>
+    <div id="gameResult"></div>
 
     <script src="script.js"></script>
   </body>
